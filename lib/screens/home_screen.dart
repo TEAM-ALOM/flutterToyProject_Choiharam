@@ -1,69 +1,96 @@
 import 'package:first_project/screens/todo_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
-class DatePicker extends StatefulWidget {
-  const DatePicker({super.key});
+class Homescreen extends StatefulWidget {
+  const Homescreen({super.key});
 
   @override
-  State<DatePicker> createState() => _DatePickerState();
+  State<Homescreen> createState() => _HomescreenState();
 }
 
-class _DatePickerState extends State<DatePicker> {
-  DateTime initialDay = DateTime.now();
+class _HomescreenState extends State<Homescreen> {
+  DateTime selectedDate = DateTime.now();
+
+  final box = Hive.box('myBox');
+  var date = DateTime.now();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF1F2123),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF1F2123),
-        title: const Text(
-          'TodoList',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 30,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-      body: Center(
-        child: Column(
-          children: [
-            Text(
-              '${initialDay.year} - ${initialDay.month} - ${initialDay.day}',
-              style: const TextStyle(
-                fontSize: 40,
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            GestureDetector(
-              child: ElevatedButton(
-                onPressed: () async {
-                  final DateTime? dateTime = await showDatePicker(
-                    context: context,
-                    firstDate: DateTime(2000),
-                    lastDate: DateTime(3000),
-                    initialDate: initialDay,
-                  );
-                  if (dateTime != null) {
-                    setState(() {
-                      initialDay = dateTime;
-                    });
-                  }
-                },
-                child: const Text(
-                  '날짜 선택',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w500,
-                  ),
+      appBar: customAppBar(context),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(30),
+            child: ElevatedButton(
+              onPressed: () async {
+                final selectedDate = await showDatePicker(
+                  context: context,
+                  initialDate: date,
+                  firstDate: DateTime(2000),
+                  lastDate: DateTime.now(),
+                  initialEntryMode: DatePickerEntryMode.calendarOnly,
+                );
+                if (selectedDate != null) {
+                  setState(() {
+                    date = selectedDate;
+                  });
+                }
+              },
+              child: const Padding(
+                padding: EdgeInsets.symmetric(vertical: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '날짜 선택',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-          ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  AppBar customAppBar(BuildContext context) {
+    var month = date.month.toString().padLeft(2, '0'),
+        day = date.day.toString().padLeft(2, '0');
+
+    return AppBar(
+      backgroundColor: const Color(0xFF1F2123),
+      title: Text(
+        'Selected date is $month/$day',
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 25,
+          fontWeight: FontWeight.w600,
         ),
       ),
+      actions: [
+        IconButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const TodoList(),
+              ),
+            );
+          },
+          icon: const Icon(
+            color: Colors.white,
+            Icons.arrow_circle_right,
+          ),
+        ),
+      ],
     );
   }
 }

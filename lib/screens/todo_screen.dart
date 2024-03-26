@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 var taskcount = 0;
+var myTask = "";
+var myTaskList = [];
 
 class TodoList extends StatefulWidget {
   const TodoList({super.key});
@@ -12,174 +15,149 @@ class TodoList extends StatefulWidget {
 class _TodoListState extends State<TodoList> {
   void onAddPressed() {
     setState(() {
-      taskcount++;
+      myTaskList.add({'id': taskcount + 1, 'task': myTask});
+      taskcount = myTaskList.length;
+      myTask = "";
     });
   }
 
-  void onDeletePressed() {
+  void onDeleteTask(int id) {
     setState(() {
-      taskcount--;
+      myTaskList.removeWhere((task) => task['id'] == id);
+      taskcount = myTaskList.length;
     });
   }
+
+  DateTime selectedDate = DateTime.now();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF1F2123),
       appBar: AppBar(
-        title: const Text(
-          'Haram\'s todo list',
-          style: TextStyle(color: Colors.white),
-        ),
         backgroundColor: const Color(0xFF1F2123),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          color: Colors.white,
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        title: const Text(
+          'My TodoList',
+          style: TextStyle(
+            color: Colors.white,
+          ),
+        ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'My Task : $taskcount개',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    color: Colors.white,
+      body: Form(
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Today\'s Task : $taskcount개',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              Padding(
+                padding: const EdgeInsets.all(30),
+                child: TextField(
+                  onChanged: (text) {
+                    setState(() {
+                      myTask = text;
+                    });
+                  },
+                  decoration: InputDecoration(
+                    hintText: '할 일을 입력하세요',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30),
+                      borderSide: const BorderSide(
+                        color: Colors.white,
+                      ),
+                    ),
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.7),
                   ),
                 ),
-              ],
-            ),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                TaskIconList(
-                  myfunc: onDeletePressed,
+              ),
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.7),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.5),
+                      spreadRadius: 1,
+                      blurRadius: 3,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-                TaskIconList(
-                  myfunc: onDeletePressed,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: myTaskList.map((task) {
+                    return ListTile(
+                      title: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 20,
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                '${task['task']}',
+                                style: const TextStyle(color: Colors.black),
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: () {
+                                onDeleteTask(task['id']);
+                              },
+                              icon: const Icon(Icons.delete_outlined),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
                 ),
-                TaskIconList(
-                  myfunc: onDeletePressed,
-                ),
-                TaskIconList(
-                  myfunc: onDeletePressed,
-                ),
-                TaskIconList(
-                  myfunc: onDeletePressed,
-                ),
-                TaskIconList(
-                  myfunc: onDeletePressed,
-                ),
-                TaskIconList(
-                  myfunc: onDeletePressed,
-                ),
-              ],
-            ),
-            const SizedBox(
-              height: 15,
-            ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: IconButton(
-        onPressed: onAddPressed,
-        icon: Padding(
-          padding: const EdgeInsets.symmetric(
-            vertical: 20,
-            horizontal: 40,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Icon(
-                Icons.add_box_rounded,
-                color: Colors.white.withOpacity(0.7),
-                size: 30,
               ),
             ],
           ),
         ),
       ),
-    );
-  }
-}
-
-class TaskIconList extends StatefulWidget {
-  TaskIconList({
-    super.key,
-    this.myfunc,
-  });
-
-  var myfunc;
-
-  @override
-  State<TaskIconList> createState() => _TaskIconListState();
-}
-
-class _TaskIconListState extends State<TaskIconList> {
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              color: Colors.white.withOpacity(0.7),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Row(
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 0,
-                        ),
-                        child: Text(
-                          '과제하기',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 0,
-                        ),
-                        child: IconButton(
-                          onPressed: () {
-                            widget.myfunc();
-                          },
-                          icon: const Icon(Icons.delete_outline),
-                          color: Colors.black,
-                        ),
-                      ),
-                    ],
-                  )
-                ],
-              ),
-            ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(30),
+        child: IconButton(
+          onPressed: () {
+            onAddPressed();
+          },
+          icon: const Icon(
+            Icons.add_box_rounded,
+            color: Colors.white,
+            size: 30,
           ),
         ),
-        const SizedBox(
-          height: 10,
-        ),
-      ],
+      ),
     );
   }
 }
